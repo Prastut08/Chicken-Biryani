@@ -1,0 +1,772 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  STUDENT
+  FACULTY
+  ADMIN
+}
+
+enum SubjectCategory {
+  CORE
+  ELECTIVE
+  OPEN_ELECTIVE
+  LAB
+  OTHER
+}
+
+enum CourseSectionStatus {
+  DRAFT
+  OPEN
+  CLOSED
+  CANCELLED
+}
+
+enum CourseSelectionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  WAITLISTED
+  CANCELLED
+}
+
+enum LeaveType {
+  MEDICAL
+  CASUAL
+  ACADEMIC
+  OTHER
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum LibraryIssueStatus {
+  ISSUED
+  RETURNED
+  OVERDUE
+  LOST
+}
+
+enum ProcessingStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum PomodoroStatus {
+  COMPLETED
+  INTERRUPTED
+}
+
+enum RoomStatus {
+  ACTIVE
+  ENDED
+}
+
+enum BadgeType {
+  ACHIEVEMENT
+  PARTICIPATION
+  SPECIAL
+}
+
+enum ChallengeStatus {
+  ACTIVE
+  COMPLETED
+  EXPIRED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum NotificationType {
+  COURSE_CONFIRMATION
+  APPROVAL
+  REJECTION
+  LEAVE_UPDATE
+  ANNOUNCEMENT
+  SYSTEM
+  CHALLENGE
+}
+
+enum CalendarEventType {
+  SEMESTER_START
+  SEMESTER_END
+  EXAM
+  HOLIDAY
+  REGISTRATION
+  COURSE_SELECTION
+  OTHER
+}
+
+enum AuditAction {
+  LOGIN
+  LOGOUT
+  ROLE_CHANGE
+  COURSE_CHANGE
+  FCFS_ALLOCATION
+  FACULTY_APPROVAL
+  ADMIN_ACTION
+  PAYMENT_EVENT
+  SECURITY_EVENT
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  role          UserRole  @default(STUDENT)
+  emailVerified DateTime?
+  image         String?
+  passwordHash  String?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  student              Student?
+  faculty              Faculty?
+  admin                Admin?
+  notifications        Notification[]
+  pomodoroSessions     PomodoroSession[]
+  userBadges           UserBadge[]
+  challengeCompletions ChallengeCompletion[]
+  studyRoomMembers     StudyRoomMember[]
+  chatMessages         ChatMessage[]
+  googleOAuthToken     GoogleOAuthToken?
+  aiDocuments          AIDocument[]
+  auditLogs            AuditLog[]
+
+  @@map("users")
+}
+
+model Student {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  studentId         String   @unique
+  firstName         String
+  lastName          String
+  email             String   @unique
+  phone             String?
+  departmentId      String
+  programId         String
+  currentSemesterId String?
+  enrollmentYear    Int
+  cgpa              Decimal? @db.Decimal(3, 2)
+  accountStatus     String   @default("ACTIVE")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user                    User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  department              Department               @relation(fields: [departmentId], references: [id])
+  program                 Program                  @relation(fields: [programId], references: [id])
+  currentSemester         Semester?                @relation("CurrentStudentSemester", fields: [currentSemesterId], references: [id])
+  courseSelectionRequests CourseSelectionRequest[]
+  timetableEntries        TimetableEntry[]
+  libraryIssues           LibraryIssue[]
+  payments                Payment[]
+
+  @@map("students")
+}
+
+model Faculty {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  facultyId     String   @unique
+  firstName     String
+  lastName      String
+  email         String   @unique
+  phone         String?
+  departmentId  String
+  designation   String
+  accountStatus String   @default("ACTIVE")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user                 User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  department           Department                @relation(fields: [departmentId], references: [id])
+  taughtCourseSections CourseSection[]
+  courseApprovals      CourseSelectionApproval[]
+
+  @@map("faculty")
+}
+
+model Admin {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  adminId       String    @unique
+  firstName     String
+  lastName      String
+  email         String    @unique
+  phone         String?
+  departmentId  String?
+  accountStatus String    @default("ACTIVE")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  department Department? @relation(fields: [departmentId], references: [id])
+
+  @@map("admins")
+}
+
+model Department {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  code        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  students Student[]
+  faculty  Faculty[]
+  admins   Admin[]
+  subjects Subject[]
+  programs Program[]
+
+  @@map("departments")
+}
+
+model Program {
+  id            String   @id @default(cuid())
+  departmentId  String
+  name          String
+  code          String
+  durationYears Int      @default(4)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  department Department @relation(fields: [departmentId], references: [id])
+  students   Student[]
+  semesters  Semester[]
+
+  @@unique([departmentId, code])
+  @@map("programs")
+}
+
+model AcademicYear {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  startDate DateTime
+  endDate   DateTime
+  isCurrent Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  semesters Semester[]
+
+  @@map("academic_years")
+}
+
+model Semester {
+  id             String   @id @default(cuid())
+  academicYearId String
+  programId      String
+  name           String
+  number         Int
+  startDate      DateTime
+  endDate        DateTime
+  isCurrent      Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  academicYear            AcademicYear             @relation(fields: [academicYearId], references: [id])
+  program                 Program                  @relation(fields: [programId], references: [id])
+  currentStudents         Student[]                @relation("CurrentStudentSemester")
+  courseSections          CourseSection[]
+  courseSelectionRequests CourseSelectionRequest[]
+  timetableEntries        TimetableEntry[]
+  academicCalendarEvents  AcademicCalendarEvent[]
+
+  @@unique([programId, number, academicYearId])
+  @@map("semesters")
+}
+
+model Subject {
+  id           String          @id @default(cuid())
+  departmentId String
+  code         String          @unique
+  name         String
+  credits      Int
+  category     SubjectCategory @default(CORE)
+  description  String?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  department              Department               @relation(fields: [departmentId], references: [id])
+  courseSections          CourseSection[]
+  courseSelectionRequests CourseSelectionRequest[]
+
+  @@map("subjects")
+}
+
+model CourseSection {
+  id                String              @id @default(cuid())
+  subjectId         String
+  facultyId         String
+  semesterId        String
+  sectionName       String
+  capacity          Int
+  currentEnrollment Int                 @default(0)
+  status            CourseSectionStatus @default(DRAFT)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  subject                 Subject                  @relation(fields: [subjectId], references: [id])
+  faculty                 Faculty                  @relation(fields: [facultyId], references: [id])
+  semester                Semester                 @relation(fields: [semesterId], references: [id])
+  courseSelectionRequests CourseSelectionRequest[]
+  timetableEntries        TimetableEntry[]
+  googleClassroomSync     GoogleClassroomSync?
+
+  @@unique([subjectId, sectionName, semesterId])
+  @@map("course_sections")
+}
+
+model TimeSlot {
+  id        String   @id @default(cuid())
+  dayOfWeek Int
+  startTime DateTime
+  endTime   DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  timetableEntries TimetableEntry[]
+
+  @@map("time_slots")
+}
+
+model TimetableEntry {
+  id              String   @id @default(cuid())
+  courseSectionId String
+  semesterId      String
+  studentId       String?
+  timeSlotId      String
+  room            String?
+  dayOfWeek       Int
+  startTime       DateTime
+  endTime         DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  courseSection CourseSection @relation(fields: [courseSectionId], references: [id])
+  semester      Semester      @relation(fields: [semesterId], references: [id])
+  student       Student?      @relation(fields: [studentId], references: [id])
+  timeSlot      TimeSlot      @relation(fields: [timeSlotId], references: [id])
+
+  @@map("timetable_entries")
+}
+
+model CourseSelectionRequest {
+  id                 String                @id @default(cuid())
+  studentId          String
+  courseSectionId    String
+  subjectId          String
+  semesterId         String
+  submittedAt        DateTime              @default(now())
+  cgpaSnapshot       Decimal               @db.Decimal(3, 2)
+  priorityScore      Decimal?              @db.Decimal(10, 4)
+  status             CourseSelectionStatus @default(PENDING)
+  approvedById       String?
+  approvedAt         DateTime?
+  rejectedReason     String?
+  confirmationSentAt DateTime?
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+
+  student       Student                  @relation(fields: [studentId], references: [id])
+  courseSection CourseSection            @relation(fields: [courseSectionId], references: [id])
+  subject       Subject                  @relation(fields: [subjectId], references: [id])
+  semester      Semester                 @relation(fields: [semesterId], references: [id])
+  approval      CourseSelectionApproval?
+
+  @@unique([studentId, subjectId])
+  @@index([courseSectionId])
+  @@index([studentId])
+  @@index([semesterId])
+  @@index([status])
+  @@index([submittedAt])
+  @@index([priorityScore])
+  @@map("course_selection_requests")
+}
+
+model CourseSelectionApproval {
+  id                       String                @id @default(cuid())
+  courseSelectionRequestId String                @unique
+  approverId               String
+  status                   CourseSelectionStatus @default(PENDING)
+  approvedAt               DateTime?
+  rejectedReason           String?
+  createdAt                DateTime              @default(now())
+  updatedAt                DateTime              @updatedAt
+
+  courseSelectionRequest CourseSelectionRequest @relation(fields: [courseSelectionRequestId], references: [id])
+  approver               Faculty                @relation(fields: [approverId], references: [id])
+
+  @@map("course_selection_approvals")
+}
+
+model LeaveRequest {
+  id             String      @id @default(cuid())
+  requesterId    String
+  requesterRole  UserRole
+  type           LeaveType
+  startDate      DateTime
+  endDate        DateTime
+  reason         String
+  status         LeaveStatus @default(PENDING)
+  approverId     String?
+  approvedAt     DateTime?
+  rejectedReason String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@index([requesterId])
+  @@index([status])
+  @@map("leave_requests")
+}
+
+model LibraryAuthor {
+  id        String   @id @default(cuid())
+  firstName String
+  lastName  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  books LibraryBook[]
+
+  @@map("library_authors")
+}
+
+model LibraryBook {
+  id              String   @id @default(cuid())
+  authorId        String
+  title           String
+  isbn            String   @unique
+  category        String
+  description     String?
+  totalCopies     Int      @default(1)
+  availableCopies Int      @default(1)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  author LibraryAuthor @relation(fields: [authorId], references: [id])
+  copies LibraryCopy[]
+
+  @@map("library_books")
+}
+
+model LibraryCopy {
+  id         String   @id @default(cuid())
+  bookId     String
+  copyNumber String
+  status     String   @default("AVAILABLE")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  book   LibraryBook    @relation(fields: [bookId], references: [id])
+  issues LibraryIssue[]
+
+  @@unique([bookId, copyNumber])
+  @@map("library_copies")
+}
+
+model LibraryIssue {
+  id           String             @id @default(cuid())
+  copyId       String
+  borrowerId   String
+  borrowerRole UserRole
+  issuedAt     DateTime           @default(now())
+  dueAt        DateTime
+  returnedAt   DateTime?
+  status       LibraryIssueStatus @default(ISSUED)
+  fineAmount   Decimal?           @db.Decimal(10, 2)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  copy    LibraryCopy @relation(fields: [copyId], references: [id])
+  student Student?    @relation(fields: [borrowerId], references: [id])
+
+  @@index([borrowerId])
+  @@map("library_issues")
+}
+
+model AIDocument {
+  id               String           @id @default(cuid())
+  userId           String
+  originalFilename String
+  fileType         String
+  fileSize         Int
+  storagePath      String?
+  processingStatus ProcessingStatus @default(PENDING)
+  summary          String?
+  processedAt      DateTime?
+  errorMessage     String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@map("ai_documents")
+}
+
+model PomodoroSession {
+  id              String         @id @default(cuid())
+  userId          String
+  startTime       DateTime
+  endTime         DateTime?
+  durationMinutes Int
+  status          PomodoroStatus @default(COMPLETED)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@map("pomodoro_sessions")
+}
+
+model StudyRoom {
+  id        String     @id @default(cuid())
+  ownerId   String
+  name      String
+  isPublic  Boolean    @default(false)
+  roomCode  String     @unique
+  status    RoomStatus @default(ACTIVE)
+  endedAt   DateTime?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  members  StudyRoomMember[]
+  messages ChatMessage[]
+
+  @@index([ownerId])
+  @@map("study_rooms")
+}
+
+model StudyRoomMember {
+  id       String    @id @default(cuid())
+  roomId   String
+  userId   String
+  joinedAt DateTime  @default(now())
+  leftAt   DateTime?
+
+  room StudyRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User      @relation(fields: [userId], references: [id])
+
+  @@unique([roomId, userId])
+  @@map("study_room_members")
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  roomId    String
+  senderId  String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  room        StudyRoom           @relation(fields: [roomId], references: [id])
+  sender      User                @relation(fields: [senderId], references: [id])
+  attachments MessageAttachment[]
+
+  @@index([roomId])
+  @@index([senderId])
+  @@map("chat_messages")
+}
+
+model MessageAttachment {
+  id          String   @id @default(cuid())
+  messageId   String
+  filename    String
+  fileSize    Int
+  mimeType    String
+  storagePath String?
+  createdAt   DateTime @default(now())
+
+  message ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@map("message_attachments")
+}
+
+model Badge {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String
+  icon        String?
+  type        BadgeType @default(ACHIEVEMENT)
+  xpReward    Int       @default(0)
+  criteria    String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  userBadges UserBadge[]
+
+  @@map("badges")
+}
+
+model UserBadge {
+  id        String   @id @default(cuid())
+  userId    String
+  badgeId   String
+  awardedAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  badge Badge @relation(fields: [badgeId], references: [id])
+
+  @@unique([userId, badgeId])
+  @@map("user_badges")
+}
+
+model Challenge {
+  id          String          @id @default(cuid())
+  title       String
+  description String
+  xpReward    Int
+  criteria    String
+  status      ChallengeStatus @default(ACTIVE)
+  startDate   DateTime
+  endDate     DateTime
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  completions ChallengeCompletion[]
+
+  @@map("challenges")
+}
+
+model ChallengeCompletion {
+  id          String   @id @default(cuid())
+  userId      String
+  challengeId String
+  completedAt DateTime @default(now())
+  xpEarned    Int
+
+  user      User      @relation(fields: [userId], references: [id])
+  challenge Challenge @relation(fields: [challengeId], references: [id])
+
+  @@unique([userId, challengeId])
+  @@map("challenge_completions")
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  studentId     String
+  category      String
+  amount        Decimal       @db.Decimal(10, 2)
+  currency      String        @default("INR")
+  status        PaymentStatus @default(PENDING)
+  transactionId String?       @unique
+  paidAt        DateTime?
+  description   String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  student Student @relation(fields: [studentId], references: [id])
+
+  @@index([studentId])
+  @@index([status])
+  @@map("payments")
+}
+
+model AuditLog {
+  id         String      @id @default(cuid())
+  actorId    String?
+  actor      User?       @relation(fields: [actorId], references: [id])
+  action     AuditAction
+  entityType String?
+  entityId   String?
+  ipAddress  String?
+  userAgent  String?
+  metadata   Json?
+  createdAt  DateTime    @default(now())
+
+  @@index([actorId])
+  @@index([action])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model Notification {
+  id                String           @id @default(cuid())
+  recipientId       String
+  title             String
+  message           String
+  type              NotificationType @default(SYSTEM)
+  isRead            Boolean          @default(false)
+  relatedEntityType String?
+  relatedEntityId   String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  recipient User @relation(fields: [recipientId], references: [id])
+
+  @@index([recipientId])
+  @@index([isRead])
+  @@map("notifications")
+}
+
+model AcademicCalendarEvent {
+  id             String            @id @default(cuid())
+  title          String
+  description    String?
+  start          DateTime
+  end            DateTime
+  type           CalendarEventType
+  visibility     String            @default("PUBLIC")
+  semesterId     String?
+  academicYearId String?
+  semester       Semester?         @relation(fields: [semesterId], references: [id])
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@index([semesterId])
+  @@index([type])
+  @@map("academic_calendar_events")
+}
+
+model GoogleOAuthToken {
+  id           String    @id @default(cuid())
+  userId       String    @unique
+  provider     String    @default("google")
+  accessToken  String?
+  refreshToken String?
+  expiresAt    DateTime?
+  scope        String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("google_oauth_tokens")
+}
+
+model GoogleClassroomSync {
+  id              String    @id @default(cuid())
+  courseSectionId String    @unique
+  googleCourseId  String?
+  meetLink        String?
+  syncStatus      String    @default("PENDING")
+  lastSyncedAt    DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  courseSection CourseSection @relation(fields: [courseSectionId], references: [id])
+
+  @@map("google_classroom_syncs")
+}
