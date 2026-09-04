@@ -3,7 +3,8 @@
 import * as React from "react";
 import { cn } from "@/lib/utils/cn";
 import { navigationByRole, type Role, isActiveNavItem } from "@/lib/navigation";
-import { LayoutDashboard, LogOut } from "lucide-react";
+import { Logo } from "@/components/ui/logo";
+import { LogOut } from "lucide-react";
 
 interface SidebarProps {
   role: Role;
@@ -55,6 +56,7 @@ function SidebarContent({ role, currentPath, onNavigate }: Omit<SidebarProps, "u
   );
 }
 
+
 function SidebarHeader({ role }: { role: Role }) {
   const roleLabels: Record<Role, string> = {
     student: "Student Portal",
@@ -64,10 +66,8 @@ function SidebarHeader({ role }: { role: Role }) {
 
   return (
     <div className="flex h-16 items-center border-b border-border px-4">
-      <div className="flex items-center gap-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-accent text-white">
-          <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
-        </div>
+      <div className="flex items-center gap-3">
+        <Logo className="h-9 w-9 shrink-0" />
         <div className="flex flex-col">
           <span className="text-sm font-bold text-foreground">Campus Hub</span>
           <span className="text-xs text-foreground-muted">{roleLabels[role]}</span>

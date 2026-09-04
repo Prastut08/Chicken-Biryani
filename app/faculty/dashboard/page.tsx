@@ -1,4 +1,3 @@
-import RoleLayout from "@/components/layout/role-layout";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/dashboard/dashboard-cards";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -6,7 +5,7 @@ import { CalendarDays, BookOpen, Clock, ClipboardCheck, Users, BookMarked, FileT
 
 export default function FacultyDashboardPage() {
   return (
-    <RoleLayout allowedRoles={["faculty"]} role="faculty">
+    <>
       <PageHeader title="Dashboard" description="Welcome back. Here&apos;s your teaching overview." />
       
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -104,6 +103,6 @@ export default function FacultyDashboardPage() {
           </CardContent>
         </Card>
       </div>
-    </RoleLayout>
+    </>
   );
 }

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { signInWithGoogleFirebase } from "@/lib/firebase/client";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/ui/logo";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, AlertCircle, Loader2 } from "lucide-react";
@@ -136,6 +137,9 @@ function SignupContent() {
         </div>
 
         <div className="text-center">
+          <Link href="/" className="inline-flex items-center justify-center gap-2 mb-2">
+            <Logo className="h-12 w-12" />
+          </Link>
           <h1 className="text-2xl font-bold text-foreground">
             Create {role === "student" ? "Student" : "Faculty"} Account
           </h1>

@@ -1,4 +1,3 @@
-import RoleLayout from "@/components/layout/role-layout";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/dashboard/dashboard-cards";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -6,7 +5,7 @@ import { CalendarDays, Clock, FileText, Library, Sparkles, Timer, Users, Trophy,
 
 export default function StudentDashboardPage() {
   return (
-    <RoleLayout allowedRoles={["student"]} role="student">
+    <>
       <PageHeader title="Dashboard" description="Welcome back. Here&apos;s your academic overview." />
       
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -107,6 +106,6 @@ export default function StudentDashboardPage() {
           </CardContent>
         </Card>
       </div>
-    </RoleLayout>
+    </>
   );
 }

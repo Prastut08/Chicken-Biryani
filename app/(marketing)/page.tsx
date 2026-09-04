@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/ui/logo";
 import {
-  LayoutDashboard,
   BookOpen,
   Timer,
   Users,
@@ -155,10 +155,8 @@ export default function HomePage() {
       {/* Navbar */}
       <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-accent text-white">
-              <LayoutDashboard className="h-4 w-4" />
-            </div>
+          <Link href="/" className="flex items-center gap-2.5">
+            <Logo className="h-9 w-9 shrink-0" />
             <span className="text-lg font-bold text-foreground">Campus Hub</span>
           </Link>
           <nav className="hidden md:flex items-center gap-6">
@@ -702,10 +700,8 @@ export default function HomePage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-12">
           <div className="grid gap-8 md:grid-cols-4">
             <div className="space-y-3">
-              <Link href="/" className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-accent text-white">
-                  <LayoutDashboard className="h-4 w-4" />
-                </div>
+              <Link href="/" className="flex items-center gap-2.5">
+                <Logo className="h-9 w-9 shrink-0" />
                 <span className="text-lg font-bold text-foreground">Campus Hub</span>
               </Link>
               <p className="text-sm text-foreground-muted">Unified academic and productivity platform for students, faculty, and administrators.</p>

@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/ui/logo";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { signInWithGoogleFirebase } from "@/lib/firebase/client";
@@ -137,11 +138,7 @@ function LoginContent() {
 
         <div className="text-center">
           <Link href="/" className="inline-flex items-center justify-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent text-white shadow">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3" />
-              </svg>
-            </div>
+            <Logo className="h-12 w-12" />
           </Link>
           <h1 className="mt-4 text-2xl font-bold text-foreground">
             {profile === "student" ? "Student Sign In" : "Faculty Sign In"}

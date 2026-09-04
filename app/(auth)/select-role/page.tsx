@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import { Logo } from "@/components/ui/logo";
 import { GraduationCap, Briefcase } from "lucide-react";
 
 export default function SelectRolePage() {
@@ -10,11 +11,7 @@ export default function SelectRolePage() {
       <div className="w-full max-w-2xl text-center space-y-8">
         <div>
           <Link href="/" className="inline-flex items-center justify-center gap-2 mb-6">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent text-white shadow-md">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3" />
-              </svg>
-            </div>
+            <Logo className="h-14 w-14" />
           </Link>
           <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             Select Your Profile
