@@ -170,10 +170,10 @@ export default function HomePage() {
           </nav>
           <div className="hidden md:flex items-center gap-3">
             <Button variant="ghost" asChild>
-              <Link href="/login">Login</Link>
+              <Link href="/select-role">Login</Link>
             </Button>
             <Button asChild>
-              <Link href="/signup">Get Started</Link>
+              <Link href="/select-role">Get Started</Link>
             </Button>
           </div>
           <button
@@ -194,10 +194,10 @@ export default function HomePage() {
               <Link href="#contact" className="px-3 py-2 text-sm font-medium text-foreground-muted hover:text-foreground" onClick={() => setMobileOpen(false)}>Contact</Link>
               <div className="mt-2 flex flex-col gap-2">
                 <Button variant="outline" asChild>
-                  <Link href="/login">Login</Link>
+                  <Link href="/select-role">Login</Link>
                 </Button>
                 <Button asChild>
-                  <Link href="/signup">Get Started</Link>
+                  <Link href="/select-role">Get Started</Link>
                 </Button>
               </div>
             </nav>
@@ -218,7 +218,7 @@ export default function HomePage() {
               </p>
               <div className="flex flex-col gap-3 sm:flex-row">
                 <Button size="lg" asChild>
-                  <Link href="/signup">Get Started</Link>
+                  <Link href="/select-role">Get Started</Link>
                 </Button>
                 <Button size="lg" variant="outline" asChild>
                   <Link href="#features">Explore Campus Hub</Link>
@@ -686,7 +686,7 @@ export default function HomePage() {
               <p className="mt-2 text-foreground-muted">Create an account or get in touch to learn more about Campus Hub for your institution.</p>
               <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                 <Button size="lg" asChild>
-                  <Link href="/signup">Get Started</Link>
+                  <Link href="/select-role">Get Started</Link>
                 </Button>
                 <Button size="lg" variant="outline" asChild>
                   <Link href="mailto:hello@campushub.example.com">Contact Us</Link>
@@ -728,8 +728,8 @@ export default function HomePage() {
             <div>
               <h4 className="text-sm font-semibold text-foreground mb-3">Account</h4>
               <ul className="space-y-2">
-                <li><Link href="/login" className="text-sm text-foreground-muted hover:text-foreground">Login</Link></li>
-                <li><Link href="/signup" className="text-sm text-foreground-muted hover:text-foreground">Sign up</Link></li>
+                <li><Link href="/select-role" className="text-sm text-foreground-muted hover:text-foreground">Login</Link></li>
+                <li><Link href="/select-role" className="text-sm text-foreground-muted hover:text-foreground">Sign up</Link></li>
               </ul>
             </div>
           </div>

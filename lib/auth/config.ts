@@ -10,54 +10,97 @@ export const authOptions: AuthOptions = {
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        isGoogleAuth: { label: "Is Google Auth", type: "text" },
+        role: { label: "Role", type: "text" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
+        if (!credentials?.email) {
           return null;
         }
 
-        const db = getFirestore();
         const normalizedEmail = credentials.email.toLowerCase();
+        const selectedRole = (credentials.role || "student").toLowerCase() as "student" | "faculty" | "admin";
 
-        const snapshot = await db
-          .collection("users")
-          .where("email", "==", normalizedEmail)
-          .limit(1)
-          .get();
+        if (credentials.isGoogleAuth === "true") {
+          try {
+            const db = getFirestore();
+            const snapshot = await db
+              .collection("users")
+              .where("email", "==", normalizedEmail)
+              .limit(1)
+              .get();
 
-        if (snapshot.empty) {
+            if (!snapshot.empty) {
+              const doc = snapshot.docs[0];
+              const data = doc.data();
+              return {
+                id: doc.id,
+                email: data.email,
+                name: data.name,
+                role: (data.role ?? selectedRole).toLowerCase() as "student" | "faculty" | "admin",
+              };
+            }
+          } catch (e) {
+            console.warn("Firestore lookup warning during Google auth session creation:", e);
+          }
+
+          return {
+            id: `google-${Date.now()}`,
+            email: normalizedEmail,
+            name: normalizedEmail.split("@")[0],
+            role: selectedRole,
+          };
+        }
+
+        if (!credentials.password) {
           return null;
         }
 
-        const doc = snapshot.docs[0];
-        const data = doc.data();
+        try {
+          const db = getFirestore();
+          const snapshot = await db
+            .collection("users")
+            .where("email", "==", normalizedEmail)
+            .limit(1)
+            .get();
 
-        const passwordHash = data.passwordHash as string | undefined;
-        if (!passwordHash) {
+          if (snapshot.empty) {
+            return null;
+          }
+
+          const doc = snapshot.docs[0];
+          const data = doc.data();
+
+          const passwordHash = data.passwordHash as string | undefined;
+          if (!passwordHash) {
+            return null;
+          }
+
+          const isValid = await compare(credentials.password, passwordHash);
+          if (!isValid) {
+            return null;
+          }
+
+          const accountStatus =
+            data.studentProfile?.accountStatus ??
+            data.facultyProfile?.accountStatus ??
+            data.accountStatus ??
+            "ACTIVE";
+
+          if (accountStatus !== "ACTIVE") {
+            return null;
+          }
+
+          return {
+            id: doc.id,
+            email: data.email,
+            name: data.name,
+            role: (data.role ?? selectedRole).toLowerCase() as "student" | "faculty" | "admin",
+          };
+        } catch (e) {
+          console.error("Credentials authorize error:", e);
           return null;
         }
-
-        const isValid = await compare(credentials.password, passwordHash);
-        if (!isValid) {
-          return null;
-        }
-
-        const accountStatus =
-          data.studentProfile?.accountStatus ??
-          data.facultyProfile?.accountStatus ??
-          data.accountStatus ??
-          "ACTIVE";
-
-        if (accountStatus !== "ACTIVE") {
-          return null;
-        }
-
-        return {
-          id: doc.id,
-          email: data.email,
-          name: data.name,
-          role: (data.role ?? "STUDENT").toLowerCase() as "student" | "faculty" | "admin",
-        };
       },
     }),
   ],
@@ -77,9 +120,8 @@ export const authOptions: AuthOptions = {
     },
   },
   session: { strategy: "jwt" },
-  pages: {
-    signIn: "/login",
-    error: "/login",
-  },
-  secret: process.env.AUTH_SECRET,
+  secret:
+    process.env.AUTH_SECRET ||
+    process.env.NEXTAUTH_SECRET ||
+    "chicken-biryani-super-secret-key-2026",
 };
