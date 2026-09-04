@@ -2,10 +2,16 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
+const AUTH_SECRET =
+  process.env.AUTH_SECRET ||
+  process.env.NEXTAUTH_SECRET ||
+  "chicken-biryani-super-secret-key-2026";
+
 const publicRoutes = [
   "/",
   "/login",
   "/signup",
+  "/select-role",
   "/about",
   "/contact",
   "/pricing",
@@ -20,7 +26,7 @@ const roleRoutes: Record<string, string[]> = {
 };
 
 export async function middleware(request: NextRequest) {
-  const token = await getToken({ req: request, secret: process.env.AUTH_SECRET });
+  const token = await getToken({ req: request, secret: AUTH_SECRET });
   const { pathname } = request.nextUrl;
 
   const isPublicRoute = publicRoutes.some(
@@ -30,27 +36,28 @@ export async function middleware(request: NextRequest) {
   const isApiAuthRoute = pathname.startsWith("/api/auth");
 
   if (isPublicRoute || isApiAuthRoute) {
-    if (isPublicRoute && token && pathname === "/login") {
-      const role = token.role ?? "student";
+    if (isPublicRoute && token && (pathname === "/login" || pathname === "/select-role")) {
+      const role = (token.role ?? "student").toLowerCase();
       const dashboardMap: Record<string, string> = {
         student: "/student/dashboard",
         faculty: "/faculty/dashboard",
         admin: "/admin/dashboard",
       };
-      return NextResponse.redirect(new URL(dashboardMap[role] || "/student/dashboard", request.url));
+      return NextResponse.redirect(
+        new URL(dashboardMap[role] || "/student/dashboard", request.url)
+      );
     }
     return NextResponse.next();
   }
 
   if (!token) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    return NextResponse.redirect(new URL("/select-role", request.url));
   }
 
-  const role = token.role as "student" | "faculty" | "admin" | undefined;
-
-  if (!role) {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
+  const role = ((token.role as string) ?? "student").toLowerCase() as
+    | "student"
+    | "faculty"
+    | "admin";
 
   const allowedPrefixes = roleRoutes[role] ?? [];
   const hasAccess = allowedPrefixes.some((prefix) => pathname.startsWith(prefix));
@@ -61,7 +68,7 @@ export async function middleware(request: NextRequest) {
       faculty: "/faculty/dashboard",
       admin: "/admin/dashboard",
     };
-    return NextResponse.redirect(new URL(dashboardMap[role], request.url));
+    return NextResponse.redirect(new URL(dashboardMap[role] || "/student/dashboard", request.url));
   }
 
   return NextResponse.next();

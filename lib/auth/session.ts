@@ -12,25 +12,40 @@ export async function getCurrentUser() {
   const session = await getServerSession();
   if (!session?.user?.email) return null;
 
-  const db = getFirestore();
-  const snapshot = await db
-    .collection("users")
-    .where("email", "==", session.user.email)
-    .limit(1)
-    .get();
+  const fallbackRole = (session.user.role ?? "student").toLowerCase() as Role;
 
-  if (snapshot.empty) return null;
+  try {
+    const db = getFirestore();
+    const snapshot = await db
+      .collection("users")
+      .where("email", "==", session.user.email.toLowerCase())
+      .limit(1)
+      .get();
 
-  const doc = snapshot.docs[0];
-  const data = doc.data();
+    if (!snapshot.empty) {
+      const doc = snapshot.docs[0];
+      const data = doc.data();
+
+      return {
+        id: doc.id,
+        email: data.email,
+        name: data.name ?? session.user.name,
+        role: (data.role ?? fallbackRole).toLowerCase() as Role,
+        image: null,
+        isActive: data.isActive ?? true,
+      };
+    }
+  } catch (e) {
+    console.warn("Firestore lookup error in getCurrentUser:", e);
+  }
 
   return {
-    id: doc.id,
-    email: data.email,
-    name: data.name,
-    role: (data.role ?? "STUDENT").toLowerCase() as "student" | "faculty" | "admin",
+    id: session.user.id || "session-user",
+    email: session.user.email,
+    name: session.user.name || session.user.email.split("@")[0],
+    role: fallbackRole,
     image: null,
-    isActive: data.isActive ?? true,
+    isActive: true,
   };
 }
 
@@ -38,34 +53,88 @@ export async function getCurrentStudent() {
   const user = await getCurrentUser();
   if (!user || user.role !== "student") return null;
 
-  const db = getFirestore();
-  const snapshot = await db.collection("users").doc(user.id).get();
-  const data = snapshot.data();
+  try {
+    const db = getFirestore();
+    const snapshot = await db.collection("users").doc(user.id).get();
+    const data = snapshot.data();
 
-  return {
-    id: user.id,
-    email: user.email,
-    name: user.name,
-    role: user.role,
-    studentProfile: data?.studentProfile ?? null,
-  };
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      studentProfile: data?.studentProfile ?? {
+        studentId: `STU-${Date.now()}`,
+        firstName: (user.name || "").split(" ")[0] || "Student",
+        lastName: (user.name || "").split(" ").slice(1).join(" ") || "",
+        email: user.email,
+        departmentId: "default",
+        programId: "default",
+        enrollmentYear: new Date().getFullYear(),
+        accountStatus: "ACTIVE",
+      },
+    };
+  } catch {
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      studentProfile: {
+        studentId: `STU-${Date.now()}`,
+        firstName: (user.name || "").split(" ")[0] || "Student",
+        lastName: (user.name || "").split(" ").slice(1).join(" ") || "",
+        email: user.email,
+        departmentId: "default",
+        programId: "default",
+        enrollmentYear: new Date().getFullYear(),
+        accountStatus: "ACTIVE",
+      },
+    };
+  }
 }
 
 export async function getCurrentFaculty() {
   const user = await getCurrentUser();
   if (!user || user.role !== "faculty") return null;
 
-  const db = getFirestore();
-  const snapshot = await db.collection("users").doc(user.id).get();
-  const data = snapshot.data();
+  try {
+    const db = getFirestore();
+    const snapshot = await db.collection("users").doc(user.id).get();
+    const data = snapshot.data();
 
-  return {
-    id: user.id,
-    email: user.email,
-    name: user.name,
-    role: user.role,
-    facultyProfile: data?.facultyProfile ?? null,
-  };
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      facultyProfile: data?.facultyProfile ?? {
+        facultyId: `FAC-${Date.now()}`,
+        firstName: (user.name || "").split(" ")[0] || "Faculty",
+        lastName: (user.name || "").split(" ").slice(1).join(" ") || "",
+        email: user.email,
+        departmentId: "default",
+        designation: "Instructor",
+        accountStatus: "ACTIVE",
+      },
+    };
+  } catch {
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      facultyProfile: {
+        facultyId: `FAC-${Date.now()}`,
+        firstName: (user.name || "").split(" ")[0] || "Faculty",
+        lastName: (user.name || "").split(" ").slice(1).join(" ") || "",
+        email: user.email,
+        departmentId: "default",
+        designation: "Instructor",
+        accountStatus: "ACTIVE",
+      },
+    };
+  }
 }
 
 export async function getCurrentAdmin() {

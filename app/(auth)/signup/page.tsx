@@ -1,19 +1,32 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ArrowLeft } from "lucide-react";
 
 type Role = "student" | "faculty";
 
-export default function SignupPage() {
+function SignupContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialRole = (searchParams.get("role") as Role) || "student";
+
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [role, setRole] = useState<Role>("student");
+  const [role, setRole] = useState<Role>(
+    initialRole === "faculty" ? "faculty" : "student"
+  );
+
+  useEffect(() => {
+    const roleParam = searchParams.get("role") as Role;
+    if (roleParam === "student" || roleParam === "faculty") {
+      setRole(roleParam);
+    }
+  }, [searchParams]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -42,7 +55,7 @@ export default function SignupPage() {
         return;
       }
 
-      router.push("/login?registered=true");
+      router.push(`/login?role=${role}&registered=true`);
     } catch {
       setError("Unable to complete the request.");
     } finally {
@@ -51,12 +64,28 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="w-full max-w-sm space-y-6">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
+      <div className="w-full max-w-sm space-y-6 rounded-xl border border-border bg-surface p-8 shadow-sm">
+        <div className="flex items-center justify-between">
+          <Link
+            href="/select-role"
+            className="inline-flex items-center gap-1 text-xs text-foreground-muted hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            <span>Change Profile</span>
+          </Link>
+          <span className="text-xs font-semibold uppercase tracking-wider text-accent bg-accent/10 px-2.5 py-1 rounded-full">
+            {role === "student" ? "Student" : "Faculty"}
+          </span>
+        </div>
+
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-foreground">Create account</h1>
+          <h1 className="text-2xl font-bold text-foreground">
+            Create {role === "student" ? "Student" : "Faculty"} Account
+          </h1>
           <p className="mt-1 text-sm text-foreground-muted">Sign up for Campus Hub</p>
         </div>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="name">Full name</Label>
@@ -78,7 +107,7 @@ export default function SignupPage() {
                 onClick={() => setRole("student")}
                 className={`flex-1 rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
                   role === "student"
-                    ? "border-accent bg-accent-light text-accent"
+                    ? "border-accent bg-accent/10 text-accent"
                     : "border-border hover:bg-surface-muted"
                 }`}
               >
@@ -89,7 +118,7 @@ export default function SignupPage() {
                 onClick={() => setRole("faculty")}
                 className={`flex-1 rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
                   role === "faculty"
-                    ? "border-accent bg-accent-light text-accent"
+                    ? "border-accent bg-accent/10 text-accent"
                     : "border-border hover:bg-surface-muted"
                 }`}
               >
@@ -104,13 +133,25 @@ export default function SignupPage() {
             </p>
           )}
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Creating account..." : "Create account"}
+            {loading ? "Creating account..." : `Sign up as ${role === "student" ? "Student" : "Faculty"}`}
           </Button>
         </form>
+
         <p className="text-center text-sm text-foreground-muted">
-          Already have an account? <Link href="/login" className="text-accent hover:underline">Sign in</Link>
+          Already have an account?{" "}
+          <Link href={`/login?role=${role}`} className="text-accent hover:underline font-medium">
+            Sign in
+          </Link>
         </p>
       </div>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center">Loading...</div>}>
+      <SignupContent />
+    </Suspense>
   );
 }
