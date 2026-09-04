@@ -1,4 +1,3 @@
-import RoleLayout from "@/components/layout/role-layout";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/dashboard/dashboard-cards";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -6,7 +5,7 @@ import { GraduationCap, School, BookOpen, GitBranch, Shield, Wallet, Settings } 
 
 export default function AdminDashboardPage() {
   return (
-    <RoleLayout allowedRoles={["admin"]} role="admin">
+    <>
       <PageHeader title="Dashboard" description="Welcome back. Here's your platform overview." />
       
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -105,6 +104,6 @@ export default function AdminDashboardPage() {
           </CardContent>
         </Card>
       </div>
-    </RoleLayout>
+    </>
   );
 }
