@@ -9,10 +9,12 @@ interface SidebarProps {
   role: Role;
   currentPath: string;
   onNavigate?: () => void;
+  user?: { name?: string | null; role: Role };
+  onLogout?: () => void;
   className?: string;
 }
 
-function SidebarContent({ role, currentPath, onNavigate }: SidebarProps) {
+function SidebarContent({ role, currentPath, onNavigate }: Omit<SidebarProps, "user" | "onLogout" | "className">) {
   const sections = navigationByRole[role] ?? [];
 
   return (
@@ -102,7 +104,7 @@ function SidebarFooter({ user, onLogout }: { user: { name?: string | null; role:
   );
 }
 
-export function Sidebar({ role, currentPath, onNavigate, className }: SidebarProps) {
+export function Sidebar({ role, currentPath, user, onLogout, onNavigate, className }: SidebarProps) {
   return (
     <aside
       className={cn(
@@ -114,17 +116,41 @@ export function Sidebar({ role, currentPath, onNavigate, className }: SidebarPro
       <div className="flex-1 overflow-y-auto scrollbar-thin">
         <SidebarContent role={role} currentPath={currentPath} onNavigate={onNavigate} />
       </div>
+      {onLogout && user && (
+        <SidebarFooter
+          user={{ name: user.name ?? "User", role }}
+          onLogout={onLogout}
+        />
+      )}
     </aside>
   );
 }
 
-export function MobileSidebar({ role, currentPath, onClose }: { role: Role; currentPath: string; onClose: () => void }) {
+export function MobileSidebar({
+  role,
+  currentPath,
+  user,
+  onLogout,
+  onClose,
+}: {
+  role: Role;
+  currentPath: string;
+  user?: { name?: string | null; role: Role };
+  onLogout?: () => void;
+  onClose: () => void;
+}) {
   return (
     <div className="flex h-screen w-64 flex-col border-r border-border bg-surface md:hidden">
       <SidebarHeader role={role} />
       <div className="flex-1 overflow-y-auto scrollbar-thin">
         <SidebarContent role={role} currentPath={currentPath} onNavigate={onClose} />
       </div>
+      {onLogout && user && (
+        <SidebarFooter
+          user={{ name: user.name ?? "User", role }}
+          onLogout={onLogout}
+        />
+      )}
     </div>
   );
 }
