@@ -1,14 +1,17 @@
-import admin from "firebase-admin";
+import { initializeApp, getApps, cert, App } from "firebase-admin/app";
+import { getFirestore as getAdminFirestore, Firestore } from "firebase-admin/firestore";
+import { getAuth as getAdminAuth, Auth } from "firebase-admin/auth";
 
-let adminApp: any = null;
+let adminApp: App | null = null;
 
-export function getFirebaseAdmin() {
+export function getFirebaseAdmin(): App {
   if (adminApp) {
     return adminApp;
   }
 
-  if (admin.apps.length > 0 && admin.apps[0]) {
-    adminApp = admin.apps[0];
+  const apps = getApps();
+  if (apps.length > 0 && apps[0]) {
+    adminApp = apps[0];
     return adminApp;
   }
 
@@ -17,8 +20,8 @@ export function getFirebaseAdmin() {
   if (serviceAccountJson) {
     try {
       const serviceAccount = JSON.parse(serviceAccountJson);
-      adminApp = admin.initializeApp({
-        credential: admin.cert(serviceAccount),
+      adminApp = initializeApp({
+        credential: cert(serviceAccount),
       });
       return adminApp;
     } catch (e) {
@@ -26,17 +29,17 @@ export function getFirebaseAdmin() {
     }
   }
 
-  adminApp = admin.initializeApp({
+  adminApp = initializeApp({
     projectId: process.env.FIREBASE_PROJECT_ID || "campushub-41647",
   });
 
   return adminApp;
 }
 
-export function getFirestore() {
-  return getFirebaseAdmin().firestore();
+export function getFirestore(): Firestore {
+  return getAdminFirestore(getFirebaseAdmin());
 }
 
-export function getAuth() {
-  return getFirebaseAdmin().auth();
+export function getAuth(): Auth {
+  return getAdminAuth(getFirebaseAdmin());
 }

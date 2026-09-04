@@ -3,25 +3,25 @@ import { getAuth, GoogleAuthProvider, signInWithPopup, Auth } from "firebase/aut
 import { getDatabase, ref, set, Database } from "firebase/database";
 
 export const studentFirebaseConfig = {
-  apiKey: "AIzaSyCLu8eX7sQ1zcvJ37pqAleYdQZB5N1REh4",
-  authDomain: "campusstudent-347d4.firebaseapp.com",
-  databaseURL: "https://campusstudent-347d4-default-rtdb.firebaseio.com",
-  projectId: "campusstudent-347d4",
-  storageBucket: "campusstudent-347d4.firebasestorage.app",
-  messagingSenderId: "124134336500",
-  appId: "1:124134336500:web:e60d5c27f3f2dc4bee3ba1",
-  measurementId: "G-9SJ6T8RYK5",
+  apiKey: process.env.NEXT_PUBLIC_STUDENT_FIREBASE_API_KEY || "AIzaSyCLu8eX7sQ1zcvJ37pqAleYdQZB5N1REh4",
+  authDomain: process.env.NEXT_PUBLIC_STUDENT_FIREBASE_AUTH_DOMAIN || "campusstudent-347d4.firebaseapp.com",
+  databaseURL: process.env.NEXT_PUBLIC_STUDENT_FIREBASE_DATABASE_URL || "https://campusstudent-347d4-default-rtdb.firebaseio.com",
+  projectId: process.env.NEXT_PUBLIC_STUDENT_FIREBASE_PROJECT_ID || "campusstudent-347d4",
+  storageBucket: process.env.NEXT_PUBLIC_STUDENT_FIREBASE_STORAGE_BUCKET || "campusstudent-347d4.firebasestorage.app",
+  messagingSenderId: process.env.NEXT_PUBLIC_STUDENT_FIREBASE_MESSAGING_SENDER_ID || "124134336500",
+  appId: process.env.NEXT_PUBLIC_STUDENT_FIREBASE_APP_ID || "1:124134336500:web:e60d5c27f3f2dc4bee3ba1",
+  measurementId: process.env.NEXT_PUBLIC_STUDENT_FIREBASE_MEASUREMENT_ID || "G-9SJ6T8RYK5",
 };
 
 export const facultyFirebaseConfig = {
-  apiKey: "AIzaSyBo-TXI1Zo2taCId2L8LyuuKaiuEUSNwKM",
-  authDomain: "campushub-41647.firebaseapp.com",
-  databaseURL: "https://campushub-41647-default-rtdb.firebaseio.com",
-  projectId: "campushub-41647",
-  storageBucket: "campushub-41647.firebasestorage.app",
-  messagingSenderId: "959481321977",
-  appId: "1:959481321977:web:20fe2d50655797843c8528",
-  measurementId: "G-9YZQ0TM5PZ",
+  apiKey: process.env.NEXT_PUBLIC_FACULTY_FIREBASE_API_KEY || "AIzaSyBo-TXI1Zo2taCId2L8LyuuKaiuEUSNwKM",
+  authDomain: process.env.NEXT_PUBLIC_FACULTY_FIREBASE_AUTH_DOMAIN || "campushub-41647.firebaseapp.com",
+  databaseURL: process.env.NEXT_PUBLIC_FACULTY_FIREBASE_DATABASE_URL || "https://campushub-41647-default-rtdb.firebaseio.com",
+  projectId: process.env.NEXT_PUBLIC_FACULTY_FIREBASE_PROJECT_ID || "campushub-41647",
+  storageBucket: process.env.NEXT_PUBLIC_FACULTY_FIREBASE_STORAGE_BUCKET || "campushub-41647.firebasestorage.app",
+  messagingSenderId: process.env.NEXT_PUBLIC_FACULTY_FIREBASE_MESSAGING_SENDER_ID || "959481321977",
+  appId: process.env.NEXT_PUBLIC_FACULTY_FIREBASE_APP_ID || "1:959481321977:web:20fe2d50655797843c8528",
+  measurementId: process.env.NEXT_PUBLIC_FACULTY_FIREBASE_MEASUREMENT_ID || "G-9YZQ0TM5PZ",
 };
 
 export function getClientFirebaseApp(role: "student" | "faculty"): FirebaseApp {

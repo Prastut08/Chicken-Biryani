@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { signInWithGoogleFirebase } from "@/lib/firebase/client";
-import { GraduationCap, Briefcase, AlertCircle, ArrowLeft } from "lucide-react";
+import { AlertCircle, ArrowLeft } from "lucide-react";
 
 type ProfileRole = "student" | "faculty";
 
@@ -70,16 +70,17 @@ function LoginContent() {
       // 4. Redirect to role-specific dashboard
       const targetDashboard = profile === "faculty" ? "/faculty/dashboard" : "/student/dashboard";
       window.location.href = targetDashboard;
-    } catch (err: any) {
+    } catch (err) {
+      const e = err as { code?: string; message?: string };
       console.error("Google Sign-In Error:", err);
-      if (err?.code === "auth/popup-closed-by-user") {
+      if (e?.code === "auth/popup-closed-by-user") {
         setError("Sign-in popup was closed before completing.");
-      } else if (err?.code === "auth/cancelled-popup-request") {
+      } else if (e?.code === "auth/cancelled-popup-request") {
         setError("Sign-in request was cancelled.");
-      } else if (err?.code === "auth/unauthorized-domain") {
+      } else if (e?.code === "auth/unauthorized-domain") {
         setError("Domain not authorized in Firebase Console. Please add localhost/domain to Firebase Auth Authorized Domains.");
       } else {
-        setError(err?.message || "Google Sign-In failed. Please try again.");
+        setError(e?.message || "Google Sign-In failed. Please try again.");
       }
     } finally {
       setGoogleLoading(false);
@@ -148,40 +149,6 @@ function LoginContent() {
           <p className="mt-1 text-sm text-foreground-muted">
             Sign in to access your {profile === "student" ? "Student" : "Faculty"} Dashboard
           </p>
-        </div>
-
-        {/* Profile Switcher Tabs */}
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            type="button"
-            onClick={() => {
-              setProfile("student");
-              setError(null);
-            }}
-            className={`flex items-center justify-center gap-2 rounded-lg border py-2.5 px-3 text-sm font-medium transition-all ${
-              profile === "student"
-                ? "border-accent bg-accent/10 text-accent ring-2 ring-accent/20"
-                : "border-border bg-surface hover:bg-surface-muted text-foreground-muted"
-            }`}
-          >
-            <GraduationCap className="h-4 w-4" />
-            <span>Student</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setProfile("faculty");
-              setError(null);
-            }}
-            className={`flex items-center justify-center gap-2 rounded-lg border py-2.5 px-3 text-sm font-medium transition-all ${
-              profile === "faculty"
-                ? "border-accent bg-accent/10 text-accent ring-2 ring-accent/20"
-                : "border-border bg-surface hover:bg-surface-muted text-foreground-muted"
-            }`}
-          >
-            <Briefcase className="h-4 w-4" />
-            <span>Faculty</span>
-          </button>
         </div>
 
         {/* Google Sign In Option */}
